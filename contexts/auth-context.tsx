@@ -156,19 +156,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setIsLoading(true)
 
-      const response = await apiClient.post<{
-        success: boolean;
-        data: { user: User; token: string; refreshToken?: string }
-      }>("/api/auth/signup", {
+      const signupBody = {
         email,
         password,
         confirmPassword: password,
         firstName,
         lastName,
-        age,
+        age: age !== undefined ? Number(age) : undefined,
         gender,
         accountType: accountType?.toLowerCase(),
-      })
+      }
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log("Signup request body:", signupBody)
+      }
+
+      const response = await apiClient.post<{
+        success: boolean;
+        data: { user: User; token: string; refreshToken?: string }
+      }>("/api/auth/signup", signupBody)
 
       // Support both {success, data: {user, token}} and flat {user, token}
       const userData = response.data?.user ?? (response as any).user

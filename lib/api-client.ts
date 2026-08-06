@@ -73,9 +73,16 @@ export class ApiClient {
       if (requestId) err.requestId = requestId;
       return err;
     }
-    const msg = body?.error || body?.message || body?.detail || `API Error: ${status}`;
+    let msg = body?.error || body?.message || body?.detail || `API Error: ${status}`;
+    if (body?.errors && typeof body.errors === 'object') {
+      const fieldErrors = Object.entries(body.errors)
+        .map(([field, detail]) => `${field}: ${Array.isArray(detail) ? detail.join(', ') : detail}`)
+        .join('; ');
+      if (fieldErrors) msg = `${msg} (${fieldErrors})`;
+    }
     const err: any = new Error(msg);
     err.status = status;
+    err.errors = body?.errors;
     return err;
   }
 
@@ -126,6 +133,9 @@ export class ApiClient {
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
+        if (process.env.NODE_ENV === 'development') {
+          console.error(`POST ${endpoint} failed (${res.status}):`, body);
+        }
         throw this.mapErrorStatus(res.status, body);
       }
 

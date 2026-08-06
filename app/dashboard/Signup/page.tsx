@@ -35,14 +35,25 @@ export default function SignUpPage() {
       return
     }
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters")
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters")
+      return
+    }
+
+    if (firstName.trim().length < 2 || lastName.trim().length < 2) {
+      setError("First and last name must be at least 2 characters")
+      return
+    }
+
+    const parsedAge = Number(age)
+    if (!age || Number.isNaN(parsedAge) || parsedAge < 10 || parsedAge > 120) {
+      setError("Please enter a valid age between 10 and 120")
       return
     }
 
     setIsLoading(true)
     try {
-      await register(email, password, firstName, lastName, age, gender, accountType)
+      await register(email, password, firstName, lastName, parsedAge, gender, accountType)
       router.push("/select-level")
     } catch (err: any) {
       console.error(err)
@@ -142,7 +153,6 @@ export default function SignUpPage() {
                 <option value="">Select gender</option>
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
-                <option value="Other">Other</option>
               </select>
             </div>
 
